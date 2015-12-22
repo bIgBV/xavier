@@ -13,36 +13,68 @@ type XavierResponse struct {
 }
 
 type XavierConf struct {
-	serviceList *map[string]string
-	timeout     int8
+	serviceList map[string]ServiceConf
+	timeout     time.Duration
 }
 
-func serviceMonitor(label string) XavierResponse {
-	client := &http.Client{}
-	request, err := http.NewRequest("HEAD", "http://www.google.com", nil)
-	if err != nil {
-		log.Fatalln(err)
-	}
+type ServiceConf struct {
+    url string
+}
 
-	request.Header.Set("User-Agent", "Xavier monitoring spider v0.1")
+func serviceMonitor(conf *XavierConf, responseStream chan<- XavierResponse) {
+    Client := &http.Client{}
 
-	startTime := time.Now()
-	response, err := client.Do(request)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	endTime := time.Now()
-	totalTime := endTime.Sub(startTime)
+    for label, config := range conf.serviceList {
+        url := config.url
 
-	return XavierResponse{
-		response,
-		label,
-		totalTime,
-	}
+        request, err := http.NewRequest("HEAD", url, nil)
+        if err != nil {
+            log.Fatalln(err)
+        }
+        request.Header.Set("User-Agent", "Xavier monitoring spider v0.1")
+
+        startTime := time.Now()
+        response, err := Client.Do(request)
+        if err != nil {
+            log.Fatalln(err)
+        }
+        endTime := time.Now()
+        totalTime := endTime.Sub(startTime)
+
+        monitorResponse := XavierResponse{
+            response,
+            label,
+            totalTime,
+        }
+        responseStream <- monitorResponse
+
+    }
+    close(responseStream)
 }
 
 func main() {
-	response := serviceMonitor("Google")
 
-	log.Println(response.resp.StatusCode, ":", response.label, ":", response.latency, "ms")
+    var serviceListConf = map[string]ServiceConf{
+        "Github": ServiceConf{url: "http://github.com"},
+        "Rbox": ServiceConf{url: "http://www.recruiterbox.com"},
+        "Google": ServiceConf{url: "http://www.google.com"},
+        "Reddit": ServiceConf{url: "http://www.reddit.com"},
+    }
+
+    testConf := &XavierConf {
+        serviceList: serviceListConf,
+        timeout: time.Second * 10,
+    }
+
+    var responseChan = make(chan XavierResponse)
+
+    go serviceMonitor(testConf, responseChan)
+
+    testResponse := <-responseChan
+
+    log.Println("Printing responses:\n", testResponse)
+
+    for response := range responseChan {
+        log.Println(response)
+    }
 }
