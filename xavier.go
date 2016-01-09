@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+    "github.com/influxdb/influxdb/client/v2"
 )
 
 // XavierResponse type is what is sent to persistance adapters.
@@ -30,8 +31,87 @@ type ServiceConf struct {
     url string
 }
 
+const (
+    MyDB = "MonitorData"
+    username = "xavier"
+    password = "watcheverything"
+)
+
+func MonitorService(conf *XavierConf, batchPoints client.BatchPoints, influxClient client.Client) {
+    Client := &http.Client{}
+    tempChan := make(chan string)
+
+    for {
+        log.Println("Starting next batch of requests")
+        for label, config := range conf.serviceList {
+            go func(label string, config ServiceConf, tempChan chan string) {
+
+                url := config.url
+
+                request, err := http.NewRequest("HEAD", url, nil)
+                if err != nil {
+                    log.Fatalln(err)
+                }
+
+                request.Header.Set("User-Agent", "Xavier monitoring spider v0.1")
+
+                log.Println("Making request")
+
+                startTime := time.Now()
+                response, err := Client.Do(request)
+                if err != nil {
+                    log.Fatalln(err)
+                }
+                endTime := time.Now()
+                totalTime := endTime.Sub(startTime)
+
+                tags := map[string]string{"service": label}
+                fields := map[string]interface{}{
+                    "latency": totalTime,
+                    "status": response.Status,
+                }
+
+                point, err := client.NewPoint("serviceMonitor", tags, fields)
+
+                if err != nil {
+                    log.Println("Error: ", err)
+                }
+
+                tempChan <- "ping"
+
+                batchPoints.AddPoint(point)
+
+            }(label, config, tempChan)
+        }
+        log.Println("Writing to DB")
+        influxClient.Write(batchPoints)
+        time.Sleep(4)
+
+        <-tempChan
+
+    }
+}
 
 func main() {
+
+    influxClient, err := client.NewHTTPClient(client.HTTPConfig{
+        Addr: "http://localhost:8086",
+        Username: username,
+        Password: password,
+    })
+
+    if err != nil {
+        log.Println("Error: ", err)
+    }
+
+    batchPoints, err := client.NewBatchPoints(client.BatchPointsConfig{
+        Database: MyDB,
+        Precision: "s",
+    })
+
+    if err != nil {
+        log.Println("Error: ", err)
+    }
 
     var serviceListConf = map[string]ServiceConf{
         "Github": ServiceConf{url: "http://github.com"},
@@ -45,15 +125,5 @@ func main() {
         timeout: time.Second * 10,
     }
 
-    var responseChan = make(chan XavierResponse)
-
-    go MonitorService(testConf, responseChan)
-
-    testResponse := <-responseChan
-
-    log.Println("Printing responses:\n", testResponse)
-
-    for response := range responseChan {
-        log.Println(response)
-    }
+    MonitorService(testConf, batchPoints, influxClient)
 }
