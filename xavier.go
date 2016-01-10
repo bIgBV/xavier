@@ -84,7 +84,7 @@ func MonitorService(conf *XavierConf, batchPoints client.BatchPoints, influxClie
 			}
 			log.Println("Writing to DB")
 			influxClient.Write(batchPoints)
-			time.Sleep(4)
+			time.Sleep(10 * time.Second)
 
 		}
 	}(tempChan, conf)
