@@ -23,13 +23,13 @@ type Response struct {
 // Conf type is the single source of truth for configuration of
 // the system.
 type Conf struct {
-	serviceList map[string]ServiceConf
+	serviceList map[string]Service
 	timeout     time.Duration
 }
 
-// ServiceConf type stores configuration regarding indidual services to be
+// Service type stores configuration regarding indidual services to be
 // monitored. This is data such as the URL, auth, timeout, etc.
-type ServiceConf struct {
+type Service struct {
 	url string
 }
 
@@ -61,15 +61,15 @@ func main() {
 		log.Println("Error: ", err)
 	}
 
-	var serviceListConf = map[string]ServiceConf{
-		"Github": ServiceConf{url: "http://github.com"},
-		"Rbox":   ServiceConf{url: "http://www.recruiterbox.com"},
-		"Google": ServiceConf{url: "http://www.google.com"},
-		"Reddit": ServiceConf{url: "http://www.reddit.com"},
+	var serviceConfList = map[string]Service{
+		"Github": Service{url: "http://github.com"},
+		"Rbox":   Service{url: "http://www.recruiterbox.com"},
+		"Google": Service{url: "http://www.google.com"},
+		"Reddit": Service{url: "http://www.reddit.com"},
 	}
 
 	testConf := &Conf{
-		serviceList: serviceListConf,
+		serviceList: serviceConfList,
 		timeout:     time.Second * 10,
 	}
 

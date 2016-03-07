@@ -10,17 +10,17 @@ import (
 
 // MonitorService which calls endpoints constantly
 func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient client.Client, wg *sync.WaitGroup) {
-	go func(conf *Conf) {
+    requestTimeout := conf.timeout
+    
+	go func(conf *Conf, timeout time.Duration) {
 		for {
 			log.Println("Starting next batch of requests")
 			for label, config := range conf.serviceList {
 
-				url := config.url
-				
 				log.Println("Making request")
 
 				startTime := time.Now()
-				resp, err := requestTimer(url)
+				resp, err := requestTimer(&config, timeout)
                 if err != nil {
                     log.Fatal(err)
                 }
@@ -33,11 +33,15 @@ func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient cli
 			time.Sleep(10 * time.Second)
 		}
 		wg.Done()
-	}(conf)
+	}(conf, requestTimeout)
 }
 
-func requestTimer(url string) (resp *http.Response, err error) {
-    Client := &http.Client{}
+// requestTimer takes a URL builds the request and returns the result
+func requestTimer(config *Service, timeout time.Duration) (resp *http.Response, err error) {
+    Client := &http.Client{
+        Timeout: timeout,
+    }
+    url := config.url
     request, err := http.NewRequest("HEAD", url, nil)
     if err != nil {
         log.Fatalln(err)
@@ -49,6 +53,7 @@ func requestTimer(url string) (resp *http.Response, err error) {
     return resp, err
 }
 
+// persisData is a helper function to persist the generated response.
 func persisData(resp *http.Response, execTime time.Duration, label string, batchPoints client.BatchPoints) {
     tags := map[string]string{"service": label}
     
