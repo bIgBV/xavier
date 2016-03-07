@@ -1,5 +1,5 @@
 
-// Xavier provides a simple tool to monitor various services.
+// Package xavier provides a simple tool to monitor various services.
 package xavier
 
 import (
@@ -20,26 +20,16 @@ type Response struct {
 	latency time.Duration
 }
 
-// Conf type is the single source of truth for configuration of
-// the system.
-type Conf struct {
-	serviceList map[string]Service
-	timeout     time.Duration
-}
-
-// Service type stores configuration regarding indidual services to be
-// monitored. This is data such as the URL, auth, timeout, etc.
-type Service struct {
-	url string
-}
-
 const (
 	MyDB     = "MonitorData"
 	username = "xavier"
 	password = "watcheverything"
+    confName = "config.yml"
 )
 
 func main() {
+    
+    log.Println("Test")
 	var wg sync.WaitGroup
 
 	influxClient, err := client.NewHTTPClient(client.HTTPConfig{
@@ -61,21 +51,25 @@ func main() {
 		log.Println("Error: ", err)
 	}
 
-	var serviceConfList = map[string]Service{
-		"Github": Service{url: "http://github.com"},
-		"Rbox":   Service{url: "http://www.recruiterbox.com"},
-		"Google": Service{url: "http://www.google.com"},
-		"Reddit": Service{url: "http://www.reddit.com"},
-	}
+	// var serviceConfList = map[string]Service{
+	// 	"Github": Service{url: "http://github.com"},
+	// 	"Rbox":   Service{url: "http://www.recruiterbox.com"},
+	// 	"Google": Service{url: "http://www.google.com"},
+	// 	"Reddit": Service{url: "http://www.reddit.com"},
+	// }
 
-	testConf := &Conf{
-		serviceList: serviceConfList,
-		timeout:     time.Second * 10,
-	}
+	// testConf := &Conf{
+	// 	serviceList: serviceConfList,
+	// 	timeout:     time.Second * 10,
+	// }
+    
+    conf := parseConfig(confName)
+    
+    log.Println(conf)
 
 	wg.Add(1)
 
-	go MonitorService(testConf, batchPoints, influxClient, &wg)
+	go MonitorService(conf, batchPoints, influxClient, &wg)
 
 	wg.Wait()
 }
