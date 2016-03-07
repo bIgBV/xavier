@@ -1,17 +1,17 @@
 package xavier
 
 import (
-    "log"
-    "net/http"
-    "time"	
-    "github.com/influxdb/influxdb/client/v2"
-    "sync"
+	"github.com/influxdb/influxdb/client/v2"
+	"log"
+	"net/http"
+	"sync"
+	"time"
 )
 
 // MonitorService which calls endpoints constantly
 func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient client.Client, wg *sync.WaitGroup) {
-    requestTimeout := conf.timeout
-    
+	requestTimeout := conf.timeout
+
 	go func(conf *Conf, timeout time.Duration) {
 		for {
 			log.Println("Starting next batch of requests")
@@ -21,12 +21,12 @@ func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient cli
 
 				startTime := time.Now()
 				resp, err := requestTimer(&config, timeout)
-                if err != nil {
-                    log.Fatal(err)
-                }
+				if err != nil {
+					log.Fatal(err)
+				}
 				endTime := time.Now()
 				totalTime := endTime.Sub(startTime)
-                persisData(resp, totalTime, label, batchPoints)
+				persisData(resp, totalTime, label, batchPoints)
 			}
 			log.Println("Writing to DB")
 			influxClient.Write(batchPoints)
@@ -38,36 +38,36 @@ func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient cli
 
 // requestTimer takes a URL builds the request and returns the result
 func requestTimer(config *Service, timeout time.Duration) (resp *http.Response, err error) {
-    Client := &http.Client{
-        Timeout: timeout,
-    }
-    url := config.url
-    request, err := http.NewRequest("HEAD", url, nil)
-    if err != nil {
-        log.Fatalln(err)
-    }
+	Client := &http.Client{
+		Timeout: timeout,
+	}
+	url := config.url
+	request, err := http.NewRequest("HEAD", url, nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-    request.Header.Set("User-Agent", "Xavier monitoring spider v0.1")
-    
-    resp, err = Client.Do(request)
-    return resp, err
+	request.Header.Set("User-Agent", "Xavier monitoring spider v0.1")
+
+	resp, err = Client.Do(request)
+	return resp, err
 }
 
 // persisData is a helper function to persist the generated response.
 func persisData(resp *http.Response, execTime time.Duration, label string, batchPoints client.BatchPoints) {
-    tags := map[string]string{"service": label}
-    
-    fields := map[string]interface{}{
-        "latency": execTime,
-        "status":  resp.Status,
-    }
+	tags := map[string]string{"service": label}
 
-    point, err := client.NewPoint("serviceMonitor", tags, fields)
+	fields := map[string]interface{}{
+		"latency": execTime,
+		"status":  resp.Status,
+	}
 
-    if err != nil {
-        log.Println("Error: ", err)
-    }
+	point, err := client.NewPoint("serviceMonitor", tags, fields)
 
-    batchPoints.AddPoint(point)
+	if err != nil {
+		log.Println("Error: ", err)
+	}
+
+	batchPoints.AddPoint(point)
 
 }

@@ -1,13 +1,12 @@
-
 // Package xavier provides a simple tool to monitor various services.
 package xavier
 
 import (
+	"github.com/influxdb/influxdb/client/v2"
+	"log"
+	"net/http"
 	"sync"
-    "time"
-    "net/http"
-    "github.com/influxdb/influxdb/client/v2"
-    "log"
+	"time"
 )
 
 // Response type is what is sent to persistance adapters.
@@ -24,12 +23,12 @@ const (
 	MyDB     = "MonitorData"
 	username = "xavier"
 	password = "watcheverything"
-    confName = "config.yml"
+	confName = "config.yml"
 )
 
 func main() {
-    
-    log.Println("Test")
+
+	log.Println("Test")
 	var wg sync.WaitGroup
 
 	influxClient, err := client.NewHTTPClient(client.HTTPConfig{
@@ -62,10 +61,10 @@ func main() {
 	// 	serviceList: serviceConfList,
 	// 	timeout:     time.Second * 10,
 	// }
-    
-    conf := parseConfig(confName)
-    
-    log.Println(conf)
+
+	conf := parseConfig(confName)
+
+	log.Println(conf)
 
 	wg.Add(1)
 

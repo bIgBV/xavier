@@ -1,10 +1,10 @@
 package xavier
 
 import (
-    "gopkg.in/yaml.v2"
-    "time"
-    "io/ioutil"
-    "log"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"log"
+	"time"
 )
 
 // Conf type is the single source of truth for configuration of
@@ -20,14 +20,14 @@ type Service struct {
 	url string `yaml:",flow"`
 }
 
-func parseConfig(fname string) (conf *Conf){
-    file, err := ioutil.ReadFile(fname)
-    if err != nil {
-        log.Fatal("Unable to read file: ", fname)
-        panic(err)
-    }
-    
-    err = yaml.Unmarshal(file, &conf)
-    
-    return conf
+func parseConfig(fname string) (conf *Conf) {
+	file, err := ioutil.ReadFile(fname)
+	if err != nil {
+		log.Fatal("Unable to read file: ", fname)
+		panic(err)
+	}
+
+	err = yaml.Unmarshal(file, &conf)
+
+	return conf
 }
