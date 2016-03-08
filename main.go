@@ -1,5 +1,5 @@
 // Package xavier provides a simple tool to monitor various services.
-package xavier
+package main
 
 import (
 	"github.com/influxdb/influxdb/client/v2"
@@ -64,7 +64,7 @@ func main() {
 
 	conf := parseConfig(confName)
 
-	log.Println(conf)
+	log.Println("config: ", conf)
 
 	wg.Add(1)
 

@@ -1,4 +1,4 @@
-package xavier
+package main
 
 import (
 	"github.com/influxdb/influxdb/client/v2"
