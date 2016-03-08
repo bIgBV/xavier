@@ -64,7 +64,7 @@ func main() {
 
 	conf := parseConfig(confName)
 
-	log.Println("config: ", conf)
+	log.Println(conf)
 
 	wg.Add(1)
 

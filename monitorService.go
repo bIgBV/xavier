@@ -9,13 +9,16 @@ import (
 )
 
 // MonitorService which calls endpoints constantly
-func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient client.Client, wg *sync.WaitGroup) {
-	requestTimeout := conf.timeout
+func MonitorService(conf *Conf,
+                    batchPoints client.BatchPoints,
+                    influxClient client.Client,
+                    wg *sync.WaitGroup) {
+	requestTimeout := conf.Timeout
 
 	go func(conf *Conf, timeout time.Duration) {
 		for {
 			log.Println("Starting next batch of requests")
-			for label, config := range conf.serviceList {
+			for _, config := range conf.Services {
 
 				log.Println("Making request")
 
@@ -26,7 +29,7 @@ func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient cli
 				}
 				endTime := time.Now()
 				totalTime := endTime.Sub(startTime)
-				persisData(resp, totalTime, label, batchPoints)
+				persisData(resp, totalTime, config.Label, batchPoints)
 			}
 			log.Println("Writing to DB")
 			influxClient.Write(batchPoints)
@@ -41,7 +44,7 @@ func requestTimer(config *Service, timeout time.Duration) (resp *http.Response, 
 	Client := &http.Client{
 		Timeout: timeout,
 	}
-	url := config.url
+	url := config.URL
 	request, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
 		log.Fatalln(err)

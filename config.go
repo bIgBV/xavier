@@ -10,14 +10,15 @@ import (
 // Conf type is the single source of truth for configuration of
 // the system.
 type Conf struct {
-	serviceList map[string]Service `yaml:"services,flow"`
-	timeout     time.Duration      `yaml:"timeout"`
+	Services   []Service       `yaml:"services,flow"`
+	Timeout    time.Duration   `yaml:"timeout"`
 }
 
 // Service type stores configuration regarding indidual services to be
 // monitored. This is data such as the URL, auth, timeout, etc.
 type Service struct {
-	url string `yaml:",flow"`
+    Label string   `yaml:"label"` 
+	URL string     `yaml:"URL"`
 }
 
 func parseConfig(fname string) (conf *Conf) {
@@ -28,6 +29,11 @@ func parseConfig(fname string) (conf *Conf) {
 	}
 
 	err = yaml.Unmarshal(file, &conf)
-
+    if err != nil {
+        log.Fatal("Config parse error")
+        panic(err)
+    }
+    
+    log.Println("Config %v\n", conf)
 	return conf
 }
