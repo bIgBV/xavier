@@ -18,18 +18,19 @@ func MonitorService(conf *Conf,
 	go func(conf *Conf, timeout time.Duration) {
 		for {
 			log.Println("Starting next batch of requests")
-			for _, config := range conf.Services {
+			for label, config := range conf.Services {
 
 				log.Println("Making request")
 
 				startTime := time.Now()
+
 				resp, err := requestTimer(&config, timeout)
 				if err != nil {
 					log.Fatal(err)
 				}
 				endTime := time.Now()
 				totalTime := endTime.Sub(startTime)
-				persisData(resp, totalTime, config.Label, batchPoints)
+				persisData(resp, totalTime, label, batchPoints)
 			}
 			log.Println("Writing to DB")
 			influxClient.Write(batchPoints)
@@ -40,11 +41,11 @@ func MonitorService(conf *Conf,
 }
 
 // requestTimer takes a URL builds the request and returns the result
-func requestTimer(config *Service, timeout time.Duration) (resp *http.Response, err error) {
+func requestTimer(service *Service, timeout time.Duration) (resp *http.Response, err error) {
 	Client := &http.Client{
 		Timeout: timeout,
 	}
-	url := config.URL
+	url := service.URL
 	request, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
 		log.Fatalln(err)

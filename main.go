@@ -23,7 +23,7 @@ const (
 	MyDB     = "MonitorData"
 	username = "xavier"
 	password = "watcheverything"
-	confName = "config.yml"
+	confName = "config.toml"
 )
 
 func main() {
