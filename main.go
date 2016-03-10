@@ -2,11 +2,12 @@
 package main
 
 import (
-	"github.com/influxdb/influxdb/client/v2"
 	"log"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/influxdb/influxdb/client/v2"
 )
 
 // Response type is what is sent to persistance adapters.
@@ -28,7 +29,6 @@ const (
 
 func main() {
 
-	log.Println("Test")
 	var wg sync.WaitGroup
 
 	influxClient, err := client.NewHTTPClient(client.HTTPConfig{
@@ -50,25 +50,13 @@ func main() {
 		log.Println("Error: ", err)
 	}
 
-	// var serviceConfList = map[string]Service{
-	// 	"Github": Service{url: "http://github.com"},
-	// 	"Rbox":   Service{url: "http://www.recruiterbox.com"},
-	// 	"Google": Service{url: "http://www.google.com"},
-	// 	"Reddit": Service{url: "http://www.reddit.com"},
-	// }
-
-	// testConf := &Conf{
-	// 	serviceList: serviceConfList,
-	// 	timeout:     time.Second * 10,
-	// }
-
 	conf := parseConfig(confName)
 
 	log.Println(conf)
 
 	wg.Add(1)
 
-	go MonitorService(conf, batchPoints, influxClient, &wg)
+	go MonitorService(&conf, batchPoints, influxClient, &wg)
 
 	wg.Wait()
 }

@@ -10,8 +10,8 @@ import (
 // Conf type is the single source of truth for configuration of
 // the system.
 type Conf struct {
-	Services map[string]Service
 	Timeout  time.Duration
+	Services map[string]Service
 }
 
 // Service type stores configuration regarding indidual services to be
@@ -20,13 +20,15 @@ type Service struct {
 	URL string
 }
 
-func parseConfig(fname string) (conf *Conf) {
+func parseConfig(fname string) Conf {
 	file, err := ioutil.ReadFile(fname)
 
 	if err != nil {
 		log.Fatal("Unable to read file: ", fname)
 		panic(err)
 	}
+
+	var conf Conf
 
 	if err := toml.Unmarshal(file, &conf); err != nil {
 		log.Fatal("Configuration parse error: \n", err)
