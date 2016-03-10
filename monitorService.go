@@ -10,9 +10,9 @@ import (
 
 // MonitorService which calls endpoints constantly
 func MonitorService(conf *Conf,
-                    batchPoints client.BatchPoints,
-                    influxClient client.Client,
-                    wg *sync.WaitGroup) {
+	batchPoints client.BatchPoints,
+	influxClient client.Client,
+	wg *sync.WaitGroup) {
 	requestTimeout := conf.Timeout
 
 	go func(conf *Conf, timeout time.Duration) {
