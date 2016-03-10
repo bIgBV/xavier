@@ -10,14 +10,14 @@ import (
 // Conf type is the single source of truth for configuration of
 // the system.
 type Conf struct {
-	Timeout  time.Duration
 	Services map[string]Service
 }
 
 // Service type stores configuration regarding indidual services to be
 // monitored. This is data such as the URL, auth, timeout, etc.
 type Service struct {
-	URL string
+	URL     string
+	Timeout time.Duration
 }
 
 func parseConfig(fname string) Conf {
@@ -35,6 +35,6 @@ func parseConfig(fname string) Conf {
 		panic(err)
 	}
 
-	log.Println("Config %v\n", conf)
+	log.Println("Configuration \n", conf)
 	return conf
 }

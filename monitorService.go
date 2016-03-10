@@ -29,16 +29,15 @@ func (resp *ServiceResp) SetLabel(l string) {
 
 // MonitorService which calls endpoints constantly
 func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient client.Client, wg *sync.WaitGroup) {
-	requestTimeout := conf.Timeout
 
-	go func(conf *Conf, timeout time.Duration) {
+	go func(conf *Conf) {
 		for {
 			log.Println("Starting next batch of requests")
 			for label, config := range conf.Services {
 
 				log.Println("Making request to: ", label)
 
-				resp := timeRequest(&config, timeout)
+				resp := timeRequest(&config)
 
 				resp.SetLabel(label)
 
@@ -47,17 +46,17 @@ func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient cli
 
 			log.Println("Writing to DB")
 			influxClient.Write(batchPoints)
-			time.Sleep(10 * time.Second)
+			time.Sleep(5 * time.Second)
 		}
 
 		wg.Done()
-	}(conf, requestTimeout)
+	}(conf)
 }
 
 // timeRequest takes a URL builds the request and returns the result
-func timeRequest(service *Service, timeout time.Duration) (serviceResp ServiceResp) {
+func timeRequest(service *Service) (serviceResp ServiceResp) {
 	Client := &http.Client{
-		Timeout: timeout,
+		Timeout: service.Timeout,
 	}
 
 	startTime := time.Now()
