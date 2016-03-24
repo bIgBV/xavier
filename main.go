@@ -58,5 +58,5 @@ func main() {
 
 	go MonitorService(&conf, batchPoints, influxClient, &wg)
 
-	wg.Wait()
+	serveMetrics()
 }
