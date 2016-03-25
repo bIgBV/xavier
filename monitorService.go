@@ -30,8 +30,8 @@ func (resp *ServiceResp) SetLabel(l string) {
 // MonitorService which calls endpoints constantly
 func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient client.Client, wg *sync.WaitGroup) {
 
-	go func(conf *Conf) {
-		for {
+	for {
+		func(conf *Conf) {
 			log.Println("Starting next batch of requests")
 			for label, config := range conf.Services {
 
@@ -41,16 +41,15 @@ func MonitorService(conf *Conf, batchPoints client.BatchPoints, influxClient cli
 
 				resp.SetLabel(label)
 
-				persisData(&resp, batchPoints)
+				PersisData(&resp, batchPoints)
 			}
 
 			log.Println("Writing to DB")
 			influxClient.Write(batchPoints)
 			time.Sleep(5 * time.Second)
-		}
-
-		wg.Done()
-	}(conf)
+		}(conf)
+	}
+	wg.Done()
 }
 
 // timeRequest takes a URL builds the request and returns the result
